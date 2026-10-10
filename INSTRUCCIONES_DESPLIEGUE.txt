@@ -1,0 +1,20 @@
+CARDS TCG - ENTREGA CONFIGURADA
+=================================
+1. El proyecto contiene .env con los datos MySQL suministrados.
+2. Importe cards_tcg_mysql.sql en la base grupoip1_cardstcg desde phpMyAdmin.
+3. En un hosting con soporte para procesos Python persistentes, instale:
+   python -m pip install -r requirements.txt
+   y arranque: python server.py
+4. El primer arranque crea admin automáticamente SI NO EXISTE YA NINGÚN ADMINISTRADOR.
+   Consulte CREDENCIALES_ADMIN_PRIVADAS.txt para la contraseña inicial.
+5. Configure el número de WhatsApp en el panel de administración.
+6. Configure HTTPS mediante el proxy web del hosting. HTTPS=1 exige servir el sitio por HTTPS.
+7. Este servidor HTTP no es una aplicación Passenger/WSGI. Un cPanel con solo
+   "Setup Python App" NO puede ejecutarlo directamente sin adaptación WSGI.
+8. Para usar un hosting con Passenger, se necesita adaptar el servidor a WSGI
+   o contratar hosting que permita procesos Python persistentes y proxy inverso.
+9. Verifique que MySQL permita conexiones remotas desde la IP del servidor y
+   que TLS sea compatible con el certificado presentado por MySQL.
+10. NO subir .env ni CREDENCIALES_ADMIN_PRIVADAS.txt a GitHub, ni a public_html.
+11. Cambie/rote la clave MySQL expuesta en el chat antes de producción y actualice
+    .env con la nueva clave. El proyecto no ha sido probado contra el MySQL remoto.
