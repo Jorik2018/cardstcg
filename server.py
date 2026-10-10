@@ -29,8 +29,16 @@ class DBConnection:
         if url:
             from urllib.parse import urlsplit,unquote
             u=urlsplit(url)
+
+     
+
             if u.scheme not in ('mysql','mysql+pymysql'):raise RuntimeError('DATABASE_URL debe comenzar con mysql://')
-            params=dict(host=u.hostname,port=u.port or 3306,user=unquote(u.username or ''),password=unquote(u.password or ''),database=unquote(u.path.lstrip('/')))
+            params=dict(
+                host=u.hostname,
+                port=u.port or 3306,
+                user=unquote(u.username or ''),
+                password=unquote(u.password or ''),
+                database=unquote(u.path.lstrip('/')))
         else:
             # Aquí se pueden usar tus credenciales fijas o las del archivo .env
             params=dict(
@@ -76,12 +84,57 @@ def conn():return DBConnection()
 
 def init():
     with conn() as c:
-        c.execute('CREATE TABLE IF NOT EXISTS settings (`key` VARCHAR(100) PRIMARY KEY,`value` TEXT NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4')
-        c.execute('CREATE TABLE IF NOT EXISTS products (id BIGINT PRIMARY KEY AUTO_INCREMENT,name VARCHAR(120) NOT NULL,collection VARCHAR(100) NOT NULL DEFAULT "",rarity VARCHAR(80) NOT NULL DEFAULT "",price DECIMAL(12,2) NOT NULL,stock INT NOT NULL,image TEXT NOT NULL,description TEXT NOT NULL,featured TINYINT NOT NULL DEFAULT 0,created BIGINT NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4')
-        c.execute('CREATE TABLE IF NOT EXISTS admin_users (id BIGINT PRIMARY KEY AUTO_INCREMENT, username VARCHAR(80) NOT NULL UNIQUE, password_hash VARCHAR(200) NOT NULL, active TINYINT NOT NULL DEFAULT 1, created BIGINT NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4')
-        c.execute('CREATE TABLE IF NOT EXISTS sessions (token_hash CHAR(64) PRIMARY KEY,csrf VARCHAR(128) NOT NULL,expires BIGINT NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4')
-        c.execute('CREATE TABLE IF NOT EXISTS orders (id BIGINT PRIMARY KEY AUTO_INCREMENT,items LONGTEXT NOT NULL,total DECIMAL(12,2) NOT NULL,customer VARCHAR(100) NOT NULL,phone VARCHAR(30) NOT NULL,status VARCHAR(30) NOT NULL DEFAULT "Pendiente",created BIGINT NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4')
-        
+        c.execute(
+            "CREATE TABLE IF NOT EXISTS settings ("
+            "`key` VARCHAR(100) PRIMARY KEY,"
+            "`value` TEXT NOT NULL"
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+        )
+
+        c.execute(
+            "CREATE TABLE IF NOT EXISTS products ("
+            "id BIGINT PRIMARY KEY AUTO_INCREMENT,"
+            "name VARCHAR(120) NOT NULL,"
+            "collection VARCHAR(100) NOT NULL DEFAULT '',"
+            "rarity VARCHAR(80) NOT NULL DEFAULT '',"
+            "price DECIMAL(12,2) NOT NULL,"
+            "stock INT NOT NULL,"
+            "image TEXT NOT NULL,"
+            "description TEXT NOT NULL,"
+            "featured TINYINT NOT NULL DEFAULT 0,"
+            "created BIGINT NOT NULL"
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+        )
+
+        c.execute(
+            "CREATE TABLE IF NOT EXISTS admin_users ("
+            "id BIGINT PRIMARY KEY AUTO_INCREMENT,"
+            "username VARCHAR(80) NOT NULL UNIQUE,"
+            "password_hash VARCHAR(200) NOT NULL,"
+            "active TINYINT NOT NULL DEFAULT 1,"
+            "created BIGINT NOT NULL"
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+        )
+
+        c.execute(
+            "CREATE TABLE IF NOT EXISTS sessions ("
+            "token_hash CHAR(64) PRIMARY KEY,"
+            "csrf VARCHAR(128) NOT NULL,"
+            "expires BIGINT NOT NULL"
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+        )
+
+        c.execute(
+            "CREATE TABLE IF NOT EXISTS orders ("
+            "id BIGINT PRIMARY KEY AUTO_INCREMENT,"
+            "items LONGTEXT NOT NULL,"
+            "total DECIMAL(12,2) NOT NULL,"
+            "customer VARCHAR(100) NOT NULL,"
+            "phone VARCHAR(30) NOT NULL,"
+            "status VARCHAR(30) NOT NULL DEFAULT 'Pendiente',"
+            "created BIGINT NOT NULL"
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+        )
         if not c.execute('SELECT 1 FROM admin_users LIMIT 1').fetchone():
             pw=os.environ.get('ADMIN_PASSWORD','')
             username=os.environ.get('ADMIN_USERNAME','admin').strip()
@@ -91,8 +144,15 @@ def init():
             digest=hashlib.scrypt(pw.encode(),salt=bytes.fromhex(salt),n=2**14,r=8,p=1).hex()
             c.execute('INSERT INTO admin_users(username,password_hash,created) VALUES(%s,%s,%s)',(username,salt+':'+digest,int(time.time())))
         
-        if not c.execute('SELECT 1 FROM settings WHERE `key`="whatsapp"').fetchone():
-            c.execute('INSERT INTO settings VALUES (%s,%s)',('whatsapp',os.environ.get('WHATSAPP_NUMBER','')))
+        if not c.execute(
+            'SELECT 1 FROM settings WHERE `key`=%s',
+            ('whatsapp',)
+        ).fetchone():
+            c.execute(
+                'INSERT INTO settings VALUES (%s,%s)',
+                ('whatsapp', os.environ.get('WHATSAPP_NUMBER', ''))
+            )
+            
 
 DUMMY_HASH='00'*16+':'+'00'*64
 
