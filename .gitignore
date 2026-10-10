@@ -7,3 +7,6 @@ __pycache__/
 *.sqlite*
 
 CREDENCIALES_ADMIN_PRIVADAS.txt
+.venv/
+venv/
+*.pyo
